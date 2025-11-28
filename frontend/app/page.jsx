@@ -29,6 +29,7 @@ import {
   authenticateWithGoogle,
   logout as apiLogout,
 } from "@/lib/api-client"
+import DocsPage from "@/components/ui/DocsPage"
 
 export default function VulnScanApp() {
   const [user, setUser] = useState(null);
@@ -399,6 +400,15 @@ if (!user) {
               <Clock className="w-4 h-4" />
               History
             </button>
+             <button
+              onClick={() => setCurrentPage("docs")}
+              className={`flex items-center gap-2 text-sm font-medium transition-colors ${
+                currentPage === "docs" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+              Docs
+            </button>
           </div>
 
           {/* Right side - User info, theme toggle and logout */}
@@ -465,6 +475,15 @@ if (!user) {
             >
               New Scan
             </button>
+             <button
+                onClick={() => {
+                setCurrentPage("docs")
+                setIsMenuOpen(false)
+              }}
+              className="block text-left px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Docs
+            </button>
             <button
               onClick={() => {
                 setCurrentPage("history")
@@ -473,6 +492,15 @@ if (!user) {
               className="block text-left px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               History
+            </button>
+            <button
+              onClick={() => {
+                setCurrentPage("docs")
+                setIsMenuOpen(false)
+              }}
+              className="block text-left px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Documentation
             </button>
             <button
               onClick={handleLogout}
@@ -1000,6 +1028,7 @@ if (!user) {
       {currentPage === "scan" && <ScanPage />}
       {currentPage === "results" && <ResultsPage />}
       {currentPage === "history" && <HistoryPage />}
+      {currentPage === "docs" && <DocsPage />}
     </div>
   )
 }
