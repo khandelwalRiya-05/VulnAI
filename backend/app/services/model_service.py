@@ -4,6 +4,8 @@ import torchvision.transforms as transforms
 from PIL import Image
 from fastapi import UploadFile
 import uuid
+import json # New import
+from datetime import datetime
 
 class ModelService:
     def __init__(self):
@@ -21,24 +23,34 @@ class ModelService:
         
         return model_dir, data_dir
     
-    async def save_model(self, file: UploadFile, model_name: str, user_id: str) -> str:
-        """Save uploaded model file for specific user"""
+    async def save_model(self, file: UploadFile, model_name: str, nb_classes: int, user_id: str) -> str: # Added nb_classes
+        """Save uploaded model file and metadata for specific user"""
         model_dir, _ = self._get_user_directories(user_id)
         
-        # Clean the model name
         model_name_clean = model_name.strip().replace(" ", "_")
         file_extension = file.filename.split('.')[-1]
         
-        # Save with exact name for easier retrieval
         model_filename = f"{model_name_clean}.{file_extension}"
         model_path = os.path.join(model_dir, model_filename)
         
+        # 1. Save model file
         with open(model_path, "wb") as buffer:
             content = await file.read()
             buffer.write(content)
-    
+            
+        # 2. Save metadata (REQUIRED for loading the model correctly)
+        metadata_path = os.path.join(model_dir, f"{model_name_clean}.json")
+        metadata = {
+            "model_name": model_name_clean,
+            "nb_classes": nb_classes,
+            "filename": model_filename,
+            "upload_time": str(datetime.now())
+        }
+        with open(metadata_path, 'w') as f:
+            json.dump(metadata, f, indent=2)
+
         return model_path
-    
+
     async def save_test_image(self, file: UploadFile, user_id: str) -> str:
         """Save uploaded test image for specific user"""
         _, data_dir = self._get_user_directories(user_id)
@@ -52,22 +64,6 @@ class ModelService:
             buffer.write(content)
         
         return image_path
-    
-    def get_user_models(self, user_id: str) -> list:
-        """List all models for a specific user"""
-        model_dir, _ = self._get_user_directories(user_id)
-        
-        models = []
-        if os.path.exists(model_dir):
-            for file in os.listdir(model_dir):
-                if file.endswith(('.pth', '.pt')):
-                    models.append({
-                        "name": file.rsplit('.', 1)[0],
-                        "filename": file,
-                        "path": os.path.join(model_dir, file)
-                    })
-        
-        return models
     
     def get_user_images(self, user_id: str) -> list:
         """List all test images for a specific user"""
@@ -83,16 +79,34 @@ class ModelService:
                     })
         
         return images
-    
-    def load_model(self, model_path: str):
+
+    def get_model_metadata(self, model_name: str, user_id: str) -> dict: # New helper function
+        """Retrieve model metadata"""
+        model_dir, _ = self._get_user_directories(user_id)
+        model_name_clean = model_name.strip().replace(" ", "_")
+        metadata_path = os.path.join(model_dir, f"{model_name_clean}.json")
+
+        if not os.path.exists(metadata_path):
+            raise FileNotFoundError(f"Metadata not found for model: {model_name}")
+
+        with open(metadata_path, 'r') as f:
+            return json.load(f)
+
+    def load_model(self, model_name: str, user_id: str): # Modified to take name and user_id
         """Load PyTorch model"""
+
         try:
+            model_dir, _ = self._get_user_directories(user_id)
+            metadata = self.get_model_metadata(model_name, user_id)
+            model_path = os.path.join(model_dir, metadata['filename'])
+
             model = torch.load(model_path, map_location='cpu')
             model.eval()
-            return model
+            return model, metadata
         except Exception as e:
             raise Exception(f"Error loading model: {str(e)}")
-    
+            
+    # ... (rest of ModelService is the same)
     def preprocess_image(self, image_path: str):
         """Preprocess image for model input"""
         transform = transforms.Compose([

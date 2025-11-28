@@ -2,6 +2,7 @@ from fastapi import APIRouter, File, UploadFile, HTTPException, Form, Depends
 from fastapi.responses import JSONResponse
 from app.services.model_service import ModelService
 from app.services.attack_service import AttackService
+from app.services.reporter_service import ReporterService
 from app.services.auth import get_current_user
 from app.models.schemas import ScanResponse
 import uuid
@@ -57,6 +58,7 @@ def get_scan_from_disk(user_id: str, scan_id: str):
 async def upload_model(
     file: UploadFile = File(...),
     model_name: str = Form(...),
+    nb_classes: int = Form(1000),
     current_user: dict = Depends(get_current_user)
 ):
     """Upload model - authenticated endpoint"""
@@ -67,12 +69,13 @@ async def upload_model(
         
         # Save uploaded model to user's directory
         model_service = ModelService()
-        model_path = await model_service.save_model(file, model_name, current_user["user_id"])
+        model_path = await model_service.save_model(file, model_name, nb_classes, current_user["user_id"])
         
         return JSONResponse({
             "message": "Model uploaded successfully",
             "model_path": model_path,
             "model_name": model_name,
+            "nb_classes": nb_classes,
             "user_id": current_user["user_id"]
         })
     
@@ -135,41 +138,75 @@ async def get_user_images(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(500, f"Error retrieving images: {str(e)}")
 
-@router.post("/scan", response_model=ScanResponse)
-async def run_vulnerability_scan(
-    model_name: str = Form(...),
-    attack_type: str = Form("fgsm"),
-    epsilon: float = Form(0.1),
+@router.get("/report/{scan_id}")
+async def get_full_security_report(
+    scan_id: str,
     current_user: dict = Depends(get_current_user)
 ):
-    """Run vulnerability scan - authenticated endpoint"""
+    """
+    Retrieves the full generated Markdown security report for a completed scan.
+    """
+    try:
+        user_id = current_user["user_id"]
+        
+        # Load scan data from disk using your existing function
+        scan_data = get_scan_from_disk(user_id, scan_id)
+        
+        if not scan_data:
+            raise HTTPException(404, f"Scan results not found for ID: {scan_id}")
+            
+        # Check if the report content exists in the stored data
+        report_content = scan_data.get("full_report_markdown")
+        
+        if not report_content:
+            # Fallback for old scans or incomplete data
+            return JSONResponse({
+                "message": "Report content not yet available for this scan.",
+                "status": "pending"
+            }, status_code=404)
+
+        # Return the report as plain text (Markdown)
+        return PlainTextResponse(report_content)
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(500, f"Error retrieving report: {str(e)}")
+    
+@router.post("/scan")
+async def run_vulnerability_scan(
+    model_name: str = Form(...),
+    # Removed attack_type and epsilon, as we will run all in parallel
+    current_user: dict = Depends(get_current_user)
+):
+    """Run comprehensive, parallel vulnerability scan - authenticated endpoint"""
     try:
         scan_id = str(uuid.uuid4())
         user_id = current_user["user_id"]
         
-        print(f"\n Starting scan for user: {user_id}")
+        print(f"\n Starting comprehensive scan for user: {user_id}")
         
-        # Initialize services
         attack_service = AttackService()
         
-        # Run the attack with user context
-        results = await attack_service.run_attack(
+        # 👈 Use the new run_all_attacks_parallel function
+        raw_results = await attack_service.run_all_attacks_parallel(
             model_name=model_name,
-            attack_type=attack_type,
-            epsilon=epsilon,
             scan_id=scan_id,
             user_id=user_id
         )
         
+        # Consolidate results into a single ScanResponse
         response = ScanResponse(
             scan_id=scan_id,
             status="completed",
-            results=results,
+            results=raw_results,
             created_at=datetime.now(),
-            message="Vulnerability scan completed successfully"
+            message="Comprehensive vulnerability scan completed successfully across all attacks",
+            model_name=model_name, 
+            attack_type="Comprehensive (5 attacks)", 
+            epsilon=0.0 
         )
         
-        # Convert to JSON-serializable format
         scan_data = {
             "scan_id": response.scan_id,
             "status": response.status,
@@ -177,21 +214,36 @@ async def run_vulnerability_scan(
             "created_at": response.created_at.isoformat(),
             "message": response.message,
             "model_name": model_name,
-            "attack_type": attack_type,
-            "epsilon": epsilon
+            "model_name": model_name,
+            "attack_type": "Comprehensive (FGSM, PGD, C&W, DeepFool)",
+            "epsilon": 0.0, # Match the value used above
+            "results": [result.dict() for result in raw_results]
         }
         
-        # Save to disk (persistent storage)
+        # Generate the human-readable report via ReporterService
+        reporter_service = ReporterService()
+        report_markdown = await reporter_service.generate_security_report(scan_data)
+
+        scan_data["full_report_markdown"] = report_markdown
         save_scan_to_disk(user_id, scan_id, scan_data)
-        print(f" Scan saved to disk for user: {user_id}")
+        print(f" Comprehensive scan saved to disk for user: {user_id}")
         
-        return response
+        # return JSONResponse(scan_data) # Return JSONResponse instead of Pydantic model for simplicity
+        return JSONResponse({
+            "scan_id": scan_id,
+            "status": "completed",
+            "model_name": model_name,
+            "raw_results_count": len(raw_results),
+            "generated_report_preview": report_markdown[:500] + "...", # Preview the start
+            "full_report_url": f"/api/v1/report/{scan_id}" # Suggest a new endpoint
+        }) # Return JSONResponse instead of Pydantic model for simplicity
     
     except Exception as e:
-        print(f" Scan failed: {str(e)}")
+        print(f" Comprehensive scan failed: {str(e)}")
         import traceback
         traceback.print_exc()
         raise HTTPException(500, f"Error running scan: {str(e)}")
+    
 
 @router.get("/scan/{scan_id}")
 async def get_scan_results(
