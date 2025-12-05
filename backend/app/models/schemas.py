@@ -35,3 +35,41 @@ class ScanResponse(BaseModel):
     model_name: str
     attack_type: str
     epsilon: float
+
+class LLMSecurityResult(BaseModel):
+    """Individual LLM security test result"""
+    test_type: str  # prompt_injection, jailbreak, pii_leakage, bias_toxicity, harmful_content
+    test_name: str
+    test_input: str
+    vulnerability_detected: bool
+    severity: str  # low, medium, high, critical
+    details: str
+    score: float
+
+class LLMScanResponse(BaseModel):
+    """Response for LLM security scan initiation"""
+    scan_id: str
+    message: str
+    security_score: float
+    risk_level: str  # LOW, MEDIUM, HIGH, CRITICAL
+    vulnerabilities_found: int
+    total_tests: int
+
+class LLMScanDetail(BaseModel):
+    """Detailed LLM scan results"""
+    scan_id: str
+    model_name: str
+    user_id: str
+    created_at: str
+    results: List[LLMSecurityResult]
+    total_tests: int
+    vulnerabilities_found: int
+    security_score: float
+    risk_level: str
+    test_categories: dict[str, int]
+
+class ScanModeRequest(BaseModel):
+    """Request for initiating a scan (either adversarial or LLM)"""
+    model_name: str
+    scan_mode: str  # "adversarial" or "llm"
+    nb_classes: Optional[int] = None  # Required for adversarial scans

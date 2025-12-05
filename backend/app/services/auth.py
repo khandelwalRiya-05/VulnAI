@@ -93,7 +93,9 @@ class AuthService:
             return payload
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Token has expired")
-        except jwt.JWTError:
+        except Exception:
+            # Some jwt libraries don't expose a common JWTError type.
+            # Fall back to a general catch-all for decode/validation failures.
             raise HTTPException(status_code=401, detail="Invalid token")
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Security(security)) -> dict:

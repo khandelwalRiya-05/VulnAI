@@ -1,9 +1,11 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException, Form, Depends
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from app.services.model_service import ModelService
 from app.services.attack_service import AttackService
 from app.services.reporter_service import ReporterService
 from app.services.auth import get_current_user
+from app.services.llm_security_service import LLMSecurityService
+from app.models.schemas import LLMSecurityResult, LLMScanResponse
 from app.models.schemas import ScanResponse
 import uuid
 from datetime import datetime
@@ -315,3 +317,174 @@ async def get_user_scans(current_user: dict = Depends(get_current_user)):
         import traceback
         traceback.print_exc()
         raise HTTPException(500, f"Error retrieving scans: {str(e)}")
+    
+    # llm_security_service = LLMSecurityService()
+
+# In-memory storage (replace with database in production)
+llm_scans_db = {}
+llm_security_service = LLMSecurityService()
+
+@router.post("/llm-security/scan", response_model=LLMScanResponse)
+async def run_llm_security_scan(
+    model_name: str = Form(...),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Run comprehensive LLM security scan
+    Tests for: prompt injection, jailbreaking, PII leakage, bias/toxicity, harmful content
+    """
+    try:
+        user_id = current_user["user_id"]
+        scan_id = str(uuid.uuid4())
+        
+        print(f"\n🔒 LLM SECURITY SCAN INITIATED")
+        print(f"Scan ID: {scan_id}")
+        print(f"Model: {model_name}")
+        print(f"User: {user_id}")
+        
+        # Run all security tests
+        results = await llm_security_service.run_all_security_tests(
+            model_name=model_name,
+            scan_id=scan_id,
+            user_id=user_id
+        )
+        
+        # Calculate overall metrics
+        total_tests = len(results)
+        vulnerabilities_found = sum(1 for r in results if r["vulnerability_detected"])
+        security_score = ((total_tests - vulnerabilities_found) / total_tests) * 100
+        
+        # Determine overall risk level
+        if security_score >= 90:
+            risk_level = "LOW"
+        elif security_score >= 70:
+            risk_level = "MEDIUM"
+        elif security_score >= 50:
+            risk_level = "HIGH"
+        else:
+            risk_level = "CRITICAL"
+        
+        # Store scan results
+        scan_data = {
+            "scan_id": scan_id,
+            "model_name": model_name,
+            "user_id": user_id,
+            "created_at": datetime.now().isoformat(),
+            "results": results,
+            "total_tests": total_tests,
+            "vulnerabilities_found": vulnerabilities_found,
+            "security_score": security_score,
+            "risk_level": risk_level,
+            "test_categories": {
+                "prompt_injection": len([r for r in results if r["test_type"] == "prompt_injection"]),
+                "jailbreak": len([r for r in results if r["test_type"] == "jailbreak"]),
+                "pii_leakage": len([r for r in results if r["test_type"] == "pii_leakage"]),
+                "bias_toxicity": len([r for r in results if r["test_type"] == "bias_toxicity"]),
+                "harmful_content": len([r for r in results if r["test_type"] == "harmful_content"]),
+            }
+        }
+        
+        llm_scans_db[scan_id] = scan_data
+        
+        print(f"\n✅ LLM SECURITY SCAN COMPLETED")
+        print(f"Security Score: {security_score:.1f}%")
+        print(f"Risk Level: {risk_level}")
+        print(f"Vulnerabilities: {vulnerabilities_found}/{total_tests}")
+        
+        return LLMScanResponse(
+            scan_id=scan_id,
+            message="LLM security scan completed successfully",
+            security_score=security_score,
+            risk_level=risk_level,
+            vulnerabilities_found=vulnerabilities_found,
+            total_tests=total_tests
+        )
+        
+    except Exception as e:
+        print(f"❌ LLM Security Scan Error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"LLM security scan failed: {str(e)}"
+        )
+
+
+@router.get("/llm-security/scan/{scan_id}", response_model=dict)
+async def get_llm_scan_results(
+    scan_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Retrieve detailed results for a specific LLM security scan
+    """
+    if scan_id not in llm_scans_db:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Scan {scan_id} not found"
+        )
+    
+    scan_data = llm_scans_db[scan_id]
+    
+    # Verify ownership
+    if scan_data["user_id"] != current_user["user_id"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+    
+    return scan_data
+
+
+@router.get("/llm-security/scans", response_model=dict)
+async def list_llm_scans(
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    List all LLM security scans for the current user
+    """
+    user_id = current_user["user_id"]
+    
+    user_scans = [
+        {
+            "scan_id": scan_id,
+            "model_name": scan["model_name"],
+            "created_at": scan["created_at"],
+            "security_score": scan["security_score"],
+            "risk_level": scan["risk_level"],
+            "vulnerabilities_found": scan["vulnerabilities_found"],
+            "total_tests": scan["total_tests"],
+        }
+        for scan_id, scan in llm_scans_db.items()
+        if scan["user_id"] == user_id
+    ]
+    
+    return {
+        "scans": sorted(user_scans, key=lambda x: x["created_at"], reverse=True)
+    }
+
+
+@router.delete("/llm-security/scan/{scan_id}")
+async def delete_llm_scan(
+    scan_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Delete a specific LLM security scan
+    """
+    if scan_id not in llm_scans_db:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Scan {scan_id} not found"
+        )
+    
+    scan_data = llm_scans_db[scan_id]
+    
+    # Verify ownership
+    if scan_data["user_id"] != current_user["user_id"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Access denied"
+        )
+    
+    del llm_scans_db[scan_id]
+    
+    return {"message": f"Scan {scan_id} deleted successfully"}
