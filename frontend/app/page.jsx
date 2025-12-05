@@ -278,7 +278,7 @@ const handleAuthError = () => {
   if (isAuthenticating) {
     return (
       <div className={isDarkMode ? "dark" : ""}>
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-900 flex items-center justify-center">
           <div className="text-white">Loading...</div>
         </div>
       </div>
@@ -1040,7 +1040,7 @@ const FullReportPage = () => {
             {/* SCAN MODE SELECTOR */}
             <div className="rounded-xl bg-white/5 backdrop-blur-md border border-white/10 p-8">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-sm font-bold text-purple-400">
+                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-400">
                   1
                 </div>
               <h2 className="text-xl font-bold text-white">Select Scan Type</h2>
@@ -1081,7 +1081,7 @@ const FullReportPage = () => {
               
               {/* Sliding background */}
               <div
-                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-transform duration-300 ${
+                className={`absolute top-1 bottom-1 w-[calc(50%-4px)] bg-gradient-to-r from-blue-500 to-blue-500 rounded-full transition-transform duration-300 ${
                   scanMode === "llm" ? "translate-x-[calc(100%+8px)]" : "translate-x-0"
                 }`}
               />
@@ -1092,7 +1092,7 @@ const FullReportPage = () => {
               {scanMode === "adversarial" ? (
                 <div>
                   <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                    <Shield className="w-4 h-4 text-purple-400" />
+                    <Shield className="w-4 h-4 text-blue-400" />
                     Adversarial Attack Testing
                   </h3>
                   <p className="text-sm text-gray-300">
@@ -1101,13 +1101,13 @@ const FullReportPage = () => {
                     robustness.
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="px-2 py-1 rounded text-xs bg-purple-500/20 text-purple-300">
+                    <span className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-300">
                       FGSM
                     </span>
-                    <span className="px-2 py-1 rounded text-xs bg-purple-500/20 text-purple-300">
+                    <span className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-300">
                       PGD
                     </span>
-                    <span className="px-2 py-1 rounded text-xs bg-purple-500/20 text-purple-300">
+                    <span className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-300">
                       DeepFool
                     </span>
                   </div>
@@ -1115,7 +1115,7 @@ const FullReportPage = () => {
               ) : (
                 <div>
                   <h3 className="font-semibold text-white mb-2 flex items-center gap-2">
-                    <Brain className="w-4 h-4 text-pink-400" />
+                    <Brain className="w-4 h-4 text-blue-400" />
                     LLM Security Testing
                   </h3>
                   <p className="text-sm text-gray-300">
@@ -1124,16 +1124,16 @@ const FullReportPage = () => {
                     generation.
                   </p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <span className="px-2 py-1 rounded text-xs bg-pink-500/20 text-pink-300">
+                    <span className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-300">
                       Prompt Injection
                     </span>
-                    <span className="px-2 py-1 rounded text-xs bg-pink-500/20 text-pink-300">
+                    <span className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-300">
                       Jailbreak
                     </span>
-                    <span className="px-2 py-1 rounded text-xs bg-pink-500/20 text-pink-300">
+                    <span className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-300">
                       PII Leakage
                     </span>
-                    <span className="px-2 py-1 rounded text-xs bg-pink-500/20 text-pink-300">
+                    <span className="px-2 py-1 rounded text-xs bg-blue-500/20 text-blue-300">
                       Bias & Toxicity
                     </span>
                   </div>
@@ -1145,7 +1145,7 @@ const FullReportPage = () => {
           {/* Step 2: Model Details */}
           <div className="rounded-xl bg-white/5 backdrop-blur-md border border-white/10 p-8">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-sm font-bold text-purple-400">
+              <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-400">
                 2
               </div>
               <h2 className="text-xl font-bold text-white">Model Information</h2>
@@ -1165,7 +1165,7 @@ const FullReportPage = () => {
                         ? "e.g., ResNet50-ImageNet"
                         : "e.g., GPT2-FineTuned"
                     }
-                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     disabled={isLoading}
                   />
                 </div>
@@ -1175,7 +1175,7 @@ const FullReportPage = () => {
                   <label className="block text-sm font-semibold text-white mb-2">
                   {scanMode === "adversarial" ? "PyTorch Model" : "LLM Model (.pt, .pth, or .bin)"}
                 </label>
-                  <label className="flex items-center justify-center w-full px-4 py-8 rounded-lg border-2 border-dashed border-white/20 cursor-pointer hover:border-purple-500 transition-colors">
+                  <label className="flex items-center justify-center w-full px-4 py-8 rounded-lg border-2 border-dashed border-white/20 cursor-pointer hover:border-blue-500 transition-colors">
                     <div className="text-center">
                       <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                       <p className="text-sm font-medium text-white">
@@ -1202,7 +1202,7 @@ const FullReportPage = () => {
             {/* Step 3: Test Data */}
             <div className="rounded-xl bg-white/5 backdrop-blur-md border border-white/10 p-8">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center text-sm font-bold text-purple-400">
+                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-sm font-bold text-blue-400">
                   3
                 </div>
                 <h2 className="text-xl font-bold text-white">
@@ -1211,7 +1211,7 @@ const FullReportPage = () => {
               </div>
 
             {scanMode === "adversarial" ? (
-              <label className="flex items-center justify-center w-full px-4 py-8 rounded-lg border-2 border-dashed border-white/20 cursor-pointer hover:border-purple-500 transition-colors">
+              <label className="flex items-center justify-center w-full px-4 py-8 rounded-lg border-2 border-dashed border-white/20 cursor-pointer hover:border-blue-500 transition-colors">
                 <div className="text-center">
                   <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
                   <p className="text-sm font-medium text-white">
@@ -1231,7 +1231,7 @@ const FullReportPage = () => {
                 />
               </label>
             ) : (
-              <label className="flex items-center justify-center w-full px-4 py-8 rounded-lg border-2 border-dashed border-white/20 cursor-pointer hover:border-purple-500 transition-colors">
+              <label className="flex items-center justify-center w-full px-4 py-8 rounded-lg border-2 border-dashed border-white/20 cursor-pointer hover:border-blue-500 transition-colors">
                 <div className="text-center">
                   <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                   <p className="text-sm font-medium text-white">
@@ -1259,9 +1259,9 @@ const FullReportPage = () => {
             </div>
 
             {/* Info Block */}
-            <div className="rounded-xl bg-purple-500/10 border border-purple-500/20 p-6 text-sm text-gray-300">
+            <div className="rounded-xl bg-blue-500/10 border border-blue-500/20 p-6 text-sm text-gray-300">
               <div className="flex items-center gap-3">
-                <Zap className="w-5 h-5 text-purple-400 flex-shrink-0" />
+                <Zap className="w-5 h-5 text-blue-400 flex-shrink-0" />
                 <p className="font-semibold text-white">
                 {scanMode === "adversarial"
                   ? "Comprehensive Attack Testing:"
@@ -1284,7 +1284,7 @@ const FullReportPage = () => {
                 </div>
                 <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"
+                    className="h-full bg-gradient-to-r from-blue-500 to-blue-500 transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
@@ -1295,7 +1295,7 @@ const FullReportPage = () => {
             <button
               onClick={handleSubmit}
               disabled={isLoading || !modelName || !modelFile || (scanMode === "adversarial" && files.length === 0)}
-              className="w-full py-4 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 font-semibold text-lg text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="w-full py-4 rounded-lg bg-gradient-to-r from-blue-500 to-blue-500 font-semibold text-lg text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isLoading ? (
                 <>
@@ -1430,9 +1430,9 @@ const FullReportPage = () => {
 
     if (!data || data.mode !== 'llm' || !data.results) {
       return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-20 pb-12 text-center text-gray-400">
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 pt-20 pb-12 text-center text-gray-400">
           <p className="pt-20">LLM security scan results are not available.</p>
-          <button onClick={() => setCurrentPage("dashboard")} className="mt-4 text-purple-400">Back to Dashboard</button>
+          <button onClick={() => setCurrentPage("dashboard")} className="mt-4 text-blue-400">Back to Dashboard</button>
         </div>
       );
     }
@@ -1483,7 +1483,7 @@ const FullReportPage = () => {
     }
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-20 pb-12">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 pt-20 pb-12">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-10">
@@ -1534,7 +1534,7 @@ const FullReportPage = () => {
               return (
                 <div
                   key={category}
-                  className="rounded-xl bg-white/5 backdrop-blur-md border border-white/10 p-6 hover:border-purple-500/50 transition-colors"
+                  className="rounded-xl bg-white/5 backdrop-blur-md border border-white/10 p-6 hover:border-blue-500/50 transition-colors"
                 >
                   <h3 className="text-lg font-semibold text-white mb-3">
                     {categoryLabels[category]}
@@ -1575,11 +1575,11 @@ const FullReportPage = () => {
                   className="w-full p-6 flex items-center justify-between hover:bg-white/5 transition-colors"
                 >
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
                       {expandedCategories[category] ? (
-                        <ChevronDown className="w-5 h-5 text-purple-400" />
+                        <ChevronDown className="w-5 h-5 text-blue-400" />
                       ) : (
-                        <ChevronRight className="w-5 h-5 text-purple-400" />
+                        <ChevronRight className="w-5 h-5 text-blue-400" />
                       )}
                     </div>
                     <div className="text-left">
@@ -1659,7 +1659,7 @@ const FullReportPage = () => {
             </button>
             <button 
               onClick={() => setCurrentPage("scan")}
-              className="flex-1 py-3 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold hover:opacity-90 transition-opacity"
+              className="flex-1 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-500 text-white font-semibold hover:opacity-90 transition-opacity"
             >
               Run New Scan
             </button>
