@@ -106,8 +106,8 @@ export const getUserImages = async () => {
 export const runScan = async (modelName, attackType, epsilon) => {
   const formData = new FormData();
   formData.append('model_name', modelName);
-  formData.append('attack_type', attackType.toLowerCase());
-  formData.append('epsilon', epsilon.toString());
+  // formData.append('attack_type', attackType.toLowerCase());
+  // formData.append('epsilon', epsilon.toString());
 
   const response = await apiClient.post('/scan', formData, {
     headers: {
